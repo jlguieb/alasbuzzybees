@@ -1,12 +1,12 @@
 import { create } from "zustand";
 import {
-  DamageConfig,
+  DEFAULT_STAGES,
   GameState,
   Group,
   ItemType,
   MAX_HP,
   MAX_INVENTORY,
-  Stage,
+  StageConfig,
   StatusEffect,
   stageForRound,
 } from "./types";
@@ -29,7 +29,9 @@ function makeGroup(name: string): Group {
 interface Actions {
   setupGroups: (count: number, names?: string[]) => void;
   renameGroup: (id: string, name: string) => void;
-  setDamage: (d: Partial<DamageConfig>) => void;
+  updateStage: (id: string, patch: Partial<StageConfig>) => void;
+  setStages: (stages: StageConfig[]) => void;
+  resetStages: () => void;
   applyWrong: (id: string) => void;
   applyCorrect: (id: string) => void;
   castItem: (userId: string, item: ItemType, targetId: string) => void;
@@ -43,20 +45,17 @@ interface Actions {
   pushLog: (msg: string) => void;
 }
 
-const initialDamage: DamageConfig = { silverfish: 1, zombie: 1.5, wither: 2, warden: 3 };
+const initialStages = DEFAULT_STAGES.map((s) => ({ ...s }));
 
 const initialState: GameState = {
   groups: ["Group 1", "Group 2", "Group 3", "Group 4"].map(makeGroup),
   round: 1,
-  damage: initialDamage,
+  totalRounds: initialStages[initialStages.length - 1].endRound,
+  stages: initialStages,
   tiebreaker: false,
   winnerId: null,
   log: ["Game initialized."],
 };
-
-function damageFor(stage: Stage, dmg: DamageConfig): number {
-  return dmg[stage];
-}
 
 function applyDamage(g: Group, amount: number): Group {
   let absorb = g.absorption;
@@ -67,10 +66,8 @@ function applyDamage(g: Group, amount: number): Group {
     absorb -= taken;
     remaining -= taken;
   }
-  if (remaining > 0) {
-    hp = Math.max(0, hp - remaining);
-  }
-  return { ...g, hp, absorption: absorb, eliminated: hp <= 0 && !g.inventory.includes("totem") /*handled separately*/ };
+  if (remaining > 0) hp = Math.max(0, hp - remaining);
+  return { ...g, hp, absorption: absorb };
 }
 
 export const useGame = create<GameState & Actions>((set, get) => ({
@@ -89,10 +86,29 @@ export const useGame = create<GameState & Actions>((set, get) => ({
 
   renameGroup: (id, name) =>
     set((s) => ({
-      groups: s.groups.map((g) => (g.id === id ? { ...g, name: name.split(/\s+/).slice(0, 2).join(" ") } : g)),
+      groups: s.groups.map((g) =>
+        g.id === id ? { ...g, name: name.split(/\s+/).slice(0, 2).join(" ") } : g
+      ),
     })),
 
-  setDamage: (d) => set((s) => ({ damage: { ...s.damage, ...d } })),
+  updateStage: (id, patch) =>
+    set((s) => {
+      const stages = s.stages.map((st) => (st.id === id ? { ...st, ...patch } : st));
+      const totalRounds = Math.max(...stages.map((st) => st.endRound));
+      return { stages, totalRounds };
+    }),
+
+  setStages: (stages) =>
+    set(() => ({
+      stages,
+      totalRounds: Math.max(...stages.map((st) => st.endRound)),
+    })),
+
+  resetStages: () =>
+    set(() => ({
+      stages: DEFAULT_STAGES.map((s) => ({ ...s })),
+      totalRounds: DEFAULT_STAGES[DEFAULT_STAGES.length - 1].endRound,
+    })),
 
   applyCorrect: (id) => {
     const g = get().groups.find((x) => x.id === id);
@@ -101,31 +117,30 @@ export const useGame = create<GameState & Actions>((set, get) => ({
 
   applyWrong: (id) => {
     const s = get();
-    const stage = stageForRound(s.round);
-    const base = damageFor(stage, s.damage);
+    const stage = stageForRound(s.round, s.stages);
+    const base = stage.damage;
     set((st) => ({
       groups: st.groups.map((g) => {
         if (g.id !== id || g.eliminated) return g;
         const hasWeak = g.effects.includes("weakness");
         const dmg = base * (hasWeak ? 2 : 1);
         let next = applyDamage(g, dmg);
-        // Totem auto-revive: if would die and holds totem, prevent + +3 absorb, consume totem
         if (next.hp <= 0 && g.inventory.includes("totem")) {
-          next = {
-            ...next,
-            hp: 1,
-            absorption: next.absorption + 3,
-            inventory: g.inventory.filter((i, idx) => !(i === "totem" && idx === g.inventory.indexOf("totem"))),
-            eliminated: false,
-          };
+          const inv = [...g.inventory];
+          inv.splice(inv.indexOf("totem"), 1);
+          next = { ...next, hp: 1, absorption: next.absorption + 3, inventory: inv };
         }
-        // remove weakness after consumption
-        const effects = next.effects.filter((e) => e !== "weakness");
+        const effects: StatusEffect[] = next.effects.filter((e) => e !== "weakness");
         return { ...next, effects, eliminated: next.hp <= 0 };
       }),
     }));
     const g = get().groups.find((x) => x.id === id);
-    if (g) get().pushLog(`❌ ${g.name} -${base}${g.effects.includes("weakness") ? " (×2 weakness)" : ""} HP. HP=${g.hp} ABS=${g.absorption}`);
+    if (g)
+      get().pushLog(
+        `❌ ${g.name} -${base}${
+          g.effects.includes("weakness") ? " (×2 weakness)" : ""
+        } HP. HP=${g.hp} ABS=${g.absorption}`
+      );
   },
 
   castItem: (userId, item, targetId) => {
@@ -136,19 +151,18 @@ export const useGame = create<GameState & Actions>((set, get) => ({
 
     set((st) => ({
       groups: st.groups.map((g) => {
-        // remove from user's inventory
         if (g.id === userId) {
           if (item === "milk") {
-            return { ...g, hasMilk: false };
-          }
-          const idx = g.inventory.indexOf(item);
-          if (idx >= 0) {
-            const inv = [...g.inventory];
-            inv.splice(idx, 1);
-            g = { ...g, inventory: inv };
+            g = { ...g, hasMilk: false };
+          } else {
+            const idx = g.inventory.indexOf(item);
+            if (idx >= 0) {
+              const inv = [...g.inventory];
+              inv.splice(idx, 1);
+              g = { ...g, inventory: inv };
+            }
           }
         }
-        // apply effect to target
         if (g.id === targetId) {
           switch (item) {
             case "healing":
@@ -163,7 +177,6 @@ export const useGame = create<GameState & Actions>((set, get) => ({
               break;
             case "totem":
               g = { ...g, absorption: g.absorption + 3 };
-              // Note: totem also lives in inventory until used; here cast = activate buff
               break;
             case "weakness":
               if (!g.effects.includes("weakness")) g = { ...g, effects: [...g.effects, "weakness"] };
@@ -194,17 +207,23 @@ export const useGame = create<GameState & Actions>((set, get) => ({
 
   nextRound: () =>
     set((s) => {
-      const next = Math.min(31, s.round + 1);
+      const next = Math.min(s.totalRounds, s.round + 1);
       return { round: next, log: [`▶ Round ${next} begins.`, ...s.log].slice(0, 80) };
     }),
   prevRound: () => set((s) => ({ round: Math.max(1, s.round - 1) })),
-  setRound: (r) => set(() => ({ round: Math.max(1, Math.min(31, r)) })),
+  setRound: (r) => set((s) => ({ round: Math.max(1, Math.min(s.totalRounds, r)) })),
 
-  startTiebreaker: () => set(() => ({ tiebreaker: true, log: ["⚔ WARDEN'S SONIC BOOM — TIEBREAKER!"] })),
+  startTiebreaker: () =>
+    set(() => ({ tiebreaker: true, log: ["⚔ WARDEN'S SONIC BOOM — TIEBREAKER!"] })),
   declareWinner: (id) => {
     const g = get().groups.find((x) => x.id === id);
     set({ winnerId: id });
     if (g) get().pushLog(`🏆 ${g.name} WINS THE BUZZY BEES!`);
   },
-  resetGame: () => set(() => ({ ...initialState, groups: initialState.groups.map((g) => ({ ...g, id: uid() })) })),
+  resetGame: () =>
+    set(() => ({
+      ...initialState,
+      stages: DEFAULT_STAGES.map((s) => ({ ...s })),
+      groups: initialState.groups.map((g) => ({ ...g, id: uid() })),
+    })),
 }));
