@@ -5,37 +5,30 @@ interface Props {
   hp: number;
   absorption: number;
   size?: number;
-  compact?: boolean;
 }
 
-/**
- * Pixel-art Minecraft hearts:
- *  - red hearts up to MAX_HP for HP
- *  - gold hearts for absorption (uncapped, wrap rows)
- *  - half-heart support for fractional HP (e.g. 1.5 dmg)
- */
-export function HeartBar({ hp, absorption, size = 22, compact = false }: Props) {
+export function HeartBar({ hp, absorption, size = 20 }: Props) {
   const fullHearts = Math.floor(hp);
   const half = hp - fullHearts >= 0.5 ? 1 : 0;
   const empty = MAX_HP - fullHearts - half;
 
-  const items: { type: "full" | "half" | "empty" }[] = [
-    ...Array(fullHearts).fill({ type: "full" }),
-    ...Array(half).fill({ type: "half" }),
-    ...Array(empty).fill({ type: "empty" }),
-  ];
-
   return (
-    <div className={`flex flex-col gap-1 ${compact ? "" : ""}`}>
+    <div className="flex flex-col gap-1.5 pixel-crisp">
       <div className="flex flex-wrap gap-0.5">
-        {items.map((it, i) => (
-          <HeartIcon key={`hp-${i}`} variant={it.type} color="red" size={size} />
+        {Array.from({ length: fullHearts }).map((_, i) => (
+          <HeartIcon key={`f-${i}`} variant="full" color="red" size={size} />
+        ))}
+        {Array.from({ length: half }).map((_, i) => (
+          <HeartIcon key={`h-${i}`} variant="half" color="red" size={size} />
+        ))}
+        {Array.from({ length: empty }).map((_, i) => (
+          <HeartIcon key={`e-${i}`} variant="empty" color="red" size={size} />
         ))}
       </div>
       {absorption > 0 && (
         <div className="flex flex-wrap gap-0.5">
           {Array.from({ length: absorption }).map((_, i) => (
-            <HeartIcon key={`abs-${i}`} variant="full" color="gold" size={size} />
+            <HeartIcon key={`a-${i}`} variant="full" color="gold" size={size} />
           ))}
         </div>
       )}
@@ -52,30 +45,32 @@ function HeartIcon({
   color: "red" | "gold";
   size: number;
 }) {
+  const fill = color === "red" ? "hsl(var(--hp-heart))" : "hsl(var(--abs-heart))";
+  const glow = color === "red" ? "hsl(0 85% 60% / 0.5)" : "hsl(45 100% 62% / 0.6)";
+
   if (variant === "empty") {
     return (
       <Heart
         size={size}
         strokeWidth={2.5}
-        className="text-foreground/25"
-        style={{ imageRendering: "pixelated" }}
+        className="text-foreground/15"
+        fill="hsl(var(--hp-empty))"
       />
     );
   }
-  const fill = color === "red" ? "hsl(var(--mc-heart))" : "hsl(var(--mc-gold))";
   if (variant === "half") {
     return (
-      <div className="relative" style={{ width: size, height: size }}>
-        <Heart
-          size={size}
-          strokeWidth={2.5}
-          className="absolute inset-0 text-foreground/25"
-        />
+      <div className="relative" style={{ width: size, height: size, filter: `drop-shadow(0 0 4px ${glow})` }}>
+        <Heart size={size} strokeWidth={2.5} className="absolute inset-0 text-foreground/15" fill="hsl(var(--hp-empty))" />
         <div className="absolute inset-0 overflow-hidden" style={{ width: size / 2 }}>
           <Heart size={size} strokeWidth={2.5} fill={fill} stroke={fill} />
         </div>
       </div>
     );
   }
-  return <Heart size={size} strokeWidth={2.5} fill={fill} stroke={fill} />;
+  return (
+    <span style={{ filter: `drop-shadow(0 0 4px ${glow})`, lineHeight: 0 }}>
+      <Heart size={size} strokeWidth={2.5} fill={fill} stroke={fill} />
+    </span>
+  );
 }
