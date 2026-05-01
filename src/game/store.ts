@@ -208,7 +208,11 @@ export const useGame = create<GameState & Actions>((set, get) => ({
   nextRound: () =>
     set((s) => {
       const next = Math.min(s.totalRounds, s.round + 1);
-      return { round: next, log: [`▶ Round ${next} begins.`, ...s.log].slice(0, 80) };
+      return {
+        round: next,
+        groups: s.groups.map((g) => ({ ...g, absorption: 0 })),
+        log: [`▶ Round ${next} begins.`, ...s.log].slice(0, 80),
+      };
     }),
   prevRound: () => set((s) => ({ round: Math.max(1, s.round - 1) })),
   setRound: (r) => set((s) => ({ round: Math.max(1, Math.min(s.totalRounds, r)) })),
