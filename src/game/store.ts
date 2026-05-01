@@ -188,7 +188,7 @@ export const useGame = create<GameState & Actions>((set, get) => ({
               if (!g.effects.includes("invisibility")) g = { ...g, effects: [...g.effects, "invisibility"] };
               break;
             case "milk":
-              g = { ...g, effects: [] };
+              g = { ...g, effects: [], absorption: 0};
               break;
           }
         }
