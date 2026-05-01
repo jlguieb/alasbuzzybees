@@ -10,7 +10,18 @@ export type ItemType =
 
 export type StatusEffect = "weakness" | "swiftness" | "invisibility";
 
-export type Stage = "silverfish" | "zombie" | "wither" | "warden";
+export type StageId = "silverfish" | "zombie" | "wither" | "warden";
+
+export interface StageConfig {
+  id: StageId;
+  label: string;
+  startRound: number; // inclusive
+  endRound: number;   // inclusive
+  timer: number;      // seconds
+  damage: number;
+  color: string;      // tailwind/HSL semantic key
+  emoji: string;
+}
 
 export interface Group {
   id: string;
@@ -23,17 +34,11 @@ export interface Group {
   eliminated: boolean;
 }
 
-export interface DamageConfig {
-  silverfish: number;
-  zombie: number;
-  wither: number;
-  warden: number;
-}
-
 export interface GameState {
   groups: Group[];
-  round: number; // 1..31
-  damage: DamageConfig;
+  round: number;
+  totalRounds: number;
+  stages: StageConfig[];
   tiebreaker: boolean;
   winnerId: string | null;
   log: string[];
@@ -41,7 +46,13 @@ export interface GameState {
 
 export const MAX_HP = 10;
 export const MAX_INVENTORY = 3;
-export const TOTAL_ROUNDS = 31;
+
+export const DEFAULT_STAGES: StageConfig[] = [
+  { id: "silverfish", label: "Silverfish", startRound: 1,  endRound: 9,  timer: 15, damage: 1,   color: "stage-silverfish", emoji: "🪲" },
+  { id: "zombie",     label: "Zombie",     startRound: 10, endRound: 18, timer: 30, damage: 1.5, color: "stage-zombie",     emoji: "🧟" },
+  { id: "wither",     label: "Wither",     startRound: 19, endRound: 27, timer: 45, damage: 2,   color: "stage-wither",     emoji: "💀" },
+  { id: "warden",     label: "Warden",     startRound: 28, endRound: 31, timer: 60, damage: 3,   color: "stage-warden",     emoji: "👁" },
+];
 
 export const ITEM_LABELS: Record<ItemType, string> = {
   healing: "Potion of Healing",
@@ -65,22 +76,9 @@ export const ITEM_EMOJI: Record<ItemType, string> = {
   milk: "🥛",
 };
 
-export function stageForRound(r: number): Stage {
-  if (r <= 9) return "silverfish";
-  if (r <= 18) return "zombie";
-  if (r <= 27) return "wither";
-  return "warden";
-}
-
-export function timerForRound(r: number): number {
-  switch (stageForRound(r)) {
-    case "silverfish": return 15;
-    case "zombie": return 30;
-    case "wither": return 45;
-    case "warden": return 60;
-  }
-}
-
-export function stageLabel(s: Stage): string {
-  return { silverfish: "Silverfish", zombie: "Zombie", wither: "Wither", warden: "Warden" }[s];
+export function stageForRound(r: number, stages: StageConfig[]): StageConfig {
+  return (
+    stages.find((s) => r >= s.startRound && r <= s.endRound) ??
+    stages[stages.length - 1]
+  );
 }

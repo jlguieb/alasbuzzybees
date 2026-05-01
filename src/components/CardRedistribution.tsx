@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useGame } from "@/game/store";
 import { ItemType, ITEM_LABELS, ITEM_EMOJI, MAX_INVENTORY } from "@/game/types";
+import { X } from "lucide-react";
 
 const POWERUPS: ItemType[] = [
   "healing", "harming", "weakness", "swiftness", "invisibility", "goldenApple", "totem",
@@ -31,34 +32,47 @@ export function CardRedistribution({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 overflow-auto p-4 flex items-start justify-center">
-      <div className="mc-panel mc-panel-stone p-5 w-full max-w-5xl">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-display text-mc-gold text-base">🃏 Card Redistribution</h2>
-          <button className="mc-btn" onClick={onClose}>Close</button>
+    <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-md overflow-auto p-4 flex items-start justify-center">
+      <div className="glass-strong rounded-2xl p-6 w-full max-w-5xl my-8">
+        <div className="flex items-center justify-between mb-1">
+          <h2 className="font-display text-base text-bee-honey">🃏 Card Redistribution</h2>
+          <button className="btn btn-icon btn-ghost" onClick={onClose}>
+            <X className="h-4 w-4" />
+          </button>
         </div>
-        <p className="font-pixel text-base mb-4 opacity-80">
-          Groups ranked by total HP+ABS. Distribute up to {MAX_INVENTORY} powerups + 1 milk per group.
+        <p className="text-sm text-muted-foreground mb-5">
+          Groups ranked by HP+ABS. Distribute up to {MAX_INVENTORY} powerups + 1 milk per group.
         </p>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           {ranked.map((g, idx) => {
             const draft = drafts[g.id];
             return (
-              <div key={g.id} className="mc-panel p-3 bg-black/40">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="font-display text-mc-gold">#{idx + 1} {g.name}</div>
-                  <div className="font-pixel text-lg">HP {g.hp} · ABS {g.absorption}</div>
+              <div key={g.id} className="glass rounded-xl p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className={`h-7 w-7 rounded-lg flex items-center justify-center font-display text-xs ${
+                      idx === 0 ? "bg-gradient-to-br from-bee-honey to-bee-amber text-black" : "bg-secondary"
+                    }`}>
+                      {idx + 1}
+                    </span>
+                    <span className="font-display text-sm">{g.name}</span>
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    HP {g.hp} • ABS {g.absorption}
+                  </div>
                 </div>
-                <div className="grid grid-cols-4 gap-1 mb-2">
+                <div className="grid grid-cols-4 gap-1.5 mb-3">
                   {POWERUPS.map((it) => {
                     const active = draft.items.includes(it);
                     return (
                       <button
                         key={it}
                         onClick={() => toggleItem(g.id, it)}
-                        className={`p-2 pixel-border font-pixel text-sm flex flex-col items-center gap-1 ${
-                          active ? "bg-mc-grass text-black" : "bg-black/60"
+                        className={`p-2 rounded-lg flex flex-col items-center gap-1 border transition-all ${
+                          active
+                            ? "bg-primary/20 border-primary text-primary"
+                            : "bg-background/40 border-border/40 hover:border-border"
                         }`}
                         title={ITEM_LABELS[it]}
                       >
@@ -68,27 +82,30 @@ export function CardRedistribution({ onClose }: { onClose: () => void }) {
                     );
                   })}
                 </div>
-                <label className="flex items-center gap-2 font-pixel text-base">
-                  <input
-                    type="checkbox"
-                    checked={draft.milk}
-                    onChange={(e) =>
-                      setDrafts((d) => ({ ...d, [g.id]: { ...d[g.id], milk: e.target.checked } }))
-                    }
-                  />
-                  🥛 Milk slot
-                </label>
-                <div className="font-pixel text-sm opacity-70 mt-1">
-                  {draft.items.length}/{MAX_INVENTORY} powerups selected
+                <div className="flex items-center justify-between">
+                  <label className="flex items-center gap-2 text-sm cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={draft.milk}
+                      onChange={(e) =>
+                        setDrafts((d) => ({ ...d, [g.id]: { ...d[g.id], milk: e.target.checked } }))
+                      }
+                      className="accent-bee-honey h-4 w-4"
+                    />
+                    🥛 Milk slot
+                  </label>
+                  <span className="text-xs text-muted-foreground">
+                    {draft.items.length}/{MAX_INVENTORY} powerups
+                  </span>
                 </div>
               </div>
             );
           })}
         </div>
 
-        <div className="mt-4 flex justify-end gap-2">
-          <button className="mc-btn" onClick={onClose}>Cancel</button>
-          <button className="mc-btn mc-btn-primary" onClick={apply}>Apply Distribution</button>
+        <div className="mt-5 flex justify-end gap-2">
+          <button className="btn" onClick={onClose}>Cancel</button>
+          <button className="btn btn-primary" onClick={apply}>Apply Distribution</button>
         </div>
       </div>
     </div>

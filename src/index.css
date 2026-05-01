@@ -1,138 +1,167 @@
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Buzzy Bees - Minecraft themed design system. All colors HSL. */
+/* Buzzy Bees — Modern Minecraft. All colors HSL. */
 
 @layer base {
   :root {
-    --background: 30 15% 8%;
-    --foreground: 45 30% 92%;
+    --background: 240 18% 7%;
+    --foreground: 220 15% 95%;
 
-    --card: 30 12% 14%;
-    --card-foreground: 45 30% 92%;
+    --card: 240 18% 11%;
+    --card-foreground: 220 15% 95%;
 
-    --popover: 30 15% 10%;
-    --popover-foreground: 45 30% 92%;
+    --popover: 240 20% 9%;
+    --popover-foreground: 220 15% 95%;
 
-    --primary: 95 55% 42%;        /* grass green */
-    --primary-foreground: 30 20% 8%;
+    --primary: 145 70% 52%;            /* neon grass */
+    --primary-foreground: 240 25% 8%;
 
-    --secondary: 30 20% 22%;       /* dirt */
-    --secondary-foreground: 45 30% 92%;
+    --secondary: 240 15% 18%;
+    --secondary-foreground: 220 15% 95%;
 
-    --muted: 30 10% 18%;
-    --muted-foreground: 40 10% 65%;
+    --muted: 240 12% 16%;
+    --muted-foreground: 220 10% 65%;
 
-    --accent: 45 95% 55%;          /* gold */
-    --accent-foreground: 30 20% 8%;
+    --accent: 45 100% 60%;             /* honey gold */
+    --accent-foreground: 240 25% 8%;
 
-    --destructive: 0 75% 50%;
-    --destructive-foreground: 45 30% 95%;
+    --destructive: 350 85% 58%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 30 15% 25%;
-    --input: 30 15% 18%;
-    --ring: 95 55% 42%;
+    --border: 240 15% 22%;
+    --input: 240 15% 14%;
+    --ring: 145 70% 52%;
 
-    --radius: 0.25rem;
+    --radius: 0.875rem;
 
-    /* Minecraft block colors */
-    --mc-grass: 95 55% 42%;
-    --mc-grass-dark: 95 50% 28%;
-    --mc-dirt: 25 45% 32%;
-    --mc-dirt-dark: 25 50% 22%;
-    --mc-stone: 0 0% 45%;
-    --mc-stone-dark: 0 0% 30%;
-    --mc-wood: 30 40% 35%;
-    --mc-gold: 45 95% 55%;
-    --mc-redstone: 0 80% 50%;
-    --mc-diamond: 180 70% 60%;
-    --mc-emerald: 140 70% 45%;
-    --mc-obsidian: 270 30% 12%;
-    --mc-bee: 45 95% 55%;
-    --mc-bee-dark: 30 80% 45%;
-    --mc-heart: 0 85% 50%;
-    --mc-heart-empty: 0 0% 25%;
-    --mc-absorb: 45 95% 55%;
-    --mc-warden: 195 60% 25%;
-    --mc-wither: 0 0% 8%;
-    --mc-zombie: 95 35% 35%;
-    --mc-silverfish: 0 0% 55%;
+    /* Brand colors */
+    --bee-honey: 45 100% 60%;
+    --bee-amber: 35 95% 55%;
+    --bee-shadow: 240 25% 5%;
+
+    /* Stage colors */
+    --stage-silverfish: 215 15% 60%;
+    --stage-zombie:     145 50% 40%;
+    --stage-wither:     270 55% 45%;
+    --stage-warden:     195 75% 45%;
+
+    /* Gameplay tokens */
+    --hp-heart: 0 85% 60%;
+    --abs-heart: 45 100% 62%;
+    --hp-empty: 240 10% 25%;
+
+    /* Gradients & shadows */
+    --gradient-honey: linear-gradient(135deg, hsl(45 100% 60%), hsl(28 95% 55%));
+    --gradient-grass: linear-gradient(135deg, hsl(145 70% 52%), hsl(160 65% 40%));
+    --gradient-danger: linear-gradient(135deg, hsl(350 85% 58%), hsl(15 90% 55%));
+    --gradient-warden: linear-gradient(135deg, hsl(195 75% 45%), hsl(220 80% 45%));
+    --gradient-card: linear-gradient(180deg, hsl(240 18% 13% / 0.85), hsl(240 22% 9% / 0.85));
+    --gradient-bg: radial-gradient(circle at 20% 0%, hsl(145 60% 18% / 0.4), transparent 50%),
+                   radial-gradient(circle at 80% 100%, hsl(45 80% 25% / 0.3), transparent 50%),
+                   linear-gradient(180deg, hsl(240 22% 6%), hsl(240 25% 4%));
+
+    --shadow-glow-honey: 0 0 24px hsl(45 100% 60% / 0.35), 0 0 60px hsl(45 100% 60% / 0.15);
+    --shadow-glow-grass: 0 0 24px hsl(145 70% 52% / 0.35);
+    --shadow-soft: 0 12px 40px -12px hsl(240 30% 0% / 0.7);
+    --shadow-card: 0 4px 24px -8px hsl(240 30% 0% / 0.6);
   }
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
-  html, body, #root {
-    height: 100%;
-  }
+  * { @apply border-border; }
+  html, body, #root { height: 100%; }
   body {
-    @apply bg-background text-foreground font-pixel;
-    background-image:
-      linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)),
-      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23553a23'/><rect x='0' y='0' width='8' height='8' fill='%23633f24'/><rect x='16' y='8' width='8' height='8' fill='%234a3320'/><rect x='8' y='16' width='8' height='8' fill='%236b4528'/><rect x='24' y='24' width='8' height='8' fill='%2348301d'/><rect x='8' y='0' width='4' height='4' fill='%234a3320'/><rect x='20' y='20' width='4' height='4' fill='%236b4528'/></svg>");
-    image-rendering: pixelated;
+    @apply text-foreground;
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    background: var(--gradient-bg);
+    background-attachment: fixed;
   }
   .font-pixel { font-family: 'VT323', monospace; }
   .font-display { font-family: 'Press Start 2P', monospace; letter-spacing: 0.02em; }
+  .font-sans { font-family: 'Space Grotesk', system-ui, sans-serif; }
 }
 
 @layer components {
-  /* Minecraft "block" panel: pixel-bevel borders */
-  .mc-panel {
-    @apply relative bg-card text-card-foreground;
-    box-shadow:
-      inset 2px 2px 0 hsl(var(--border)),
-      inset -2px -2px 0 hsl(0 0% 0% / 0.6),
-      0 4px 0 hsl(0 0% 0% / 0.5);
+  /* Modern glass card */
+  .glass {
+    background: var(--gradient-card);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid hsl(var(--border));
+    box-shadow: var(--shadow-card);
   }
-  .mc-panel-stone {
-    background-image:
-      linear-gradient(hsl(0 0% 0% / 0.35), hsl(0 0% 0% / 0.55)),
-      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24'><rect width='24' height='24' fill='%237a7a7a'/><rect x='0' y='0' width='6' height='6' fill='%238a8a8a'/><rect x='12' y='6' width='6' height='6' fill='%236b6b6b'/><rect x='6' y='12' width='6' height='6' fill='%23909090'/><rect x='18' y='18' width='6' height='6' fill='%23606060'/></svg>");
-    image-rendering: pixelated;
-  }
-  .mc-panel-dirt {
-    background-image:
-      linear-gradient(hsl(0 0% 0% / 0.5), hsl(0 0% 0% / 0.65)),
-      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24'><rect width='24' height='24' fill='%23553a23'/><rect x='0' y='0' width='6' height='6' fill='%23633f24'/><rect x='12' y='6' width='6' height='6' fill='%234a3320'/><rect x='6' y='12' width='6' height='6' fill='%236b4528'/></svg>");
-    image-rendering: pixelated;
-  }
-  .mc-btn {
-    @apply font-display text-xs uppercase px-4 py-3 transition-transform active:translate-y-0.5 select-none;
-    background: hsl(var(--mc-stone));
-    color: hsl(var(--foreground));
-    box-shadow:
-      inset 2px 2px 0 hsl(0 0% 100% / 0.25),
-      inset -2px -2px 0 hsl(0 0% 0% / 0.55),
-      0 3px 0 hsl(0 0% 0% / 0.5);
-  }
-  .mc-btn:hover { filter: brightness(1.15); }
-  .mc-btn-primary { background: hsl(var(--mc-grass)); color: hsl(0 0% 8%); }
-  .mc-btn-danger { background: hsl(var(--mc-redstone)); color: hsl(0 0% 100%); }
-  .mc-btn-gold { background: hsl(var(--mc-gold)); color: hsl(0 0% 8%); }
-  .mc-btn-diamond { background: hsl(var(--mc-diamond)); color: hsl(0 0% 8%); }
-  .mc-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-  .mc-input {
-    @apply font-pixel text-lg bg-input text-foreground px-3 py-2 outline-none focus:ring-2 focus:ring-primary;
-    box-shadow:
-      inset 2px 2px 0 hsl(0 0% 0% / 0.6),
-      inset -2px -2px 0 hsl(0 0% 100% / 0.1);
+  .glass-strong {
+    background: linear-gradient(180deg, hsl(240 18% 14% / 0.95), hsl(240 22% 9% / 0.95));
+    backdrop-filter: blur(20px);
+    border: 1px solid hsl(var(--border));
+    box-shadow: var(--shadow-soft);
   }
 
-  .pixel-border {
-    box-shadow:
-      inset 2px 2px 0 hsl(0 0% 100% / 0.15),
-      inset -2px -2px 0 hsl(0 0% 0% / 0.6);
+  /* Gradient borders for hero cards */
+  .ring-honey {
+    box-shadow: 0 0 0 1px hsl(45 100% 60% / 0.4), var(--shadow-glow-honey);
+  }
+  .ring-grass {
+    box-shadow: 0 0 0 1px hsl(145 70% 52% / 0.4), var(--shadow-glow-grass);
   }
 
-  .stage-silverfish { background: hsl(var(--mc-silverfish)); color: hsl(0 0% 8%); }
-  .stage-zombie    { background: hsl(var(--mc-zombie));    color: hsl(0 0% 95%); }
-  .stage-wither    { background: hsl(var(--mc-wither));    color: hsl(0 0% 95%); }
-  .stage-warden    { background: hsl(var(--mc-warden));    color: hsl(0 0% 95%); }
+  /* Modern button */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 select-none;
+    @apply border border-border/60 bg-secondary/60 text-foreground;
+    @apply hover:bg-secondary hover:border-border active:scale-[0.97];
+    @apply disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100;
+  }
+  .btn-primary {
+    background: var(--gradient-grass);
+    color: hsl(var(--primary-foreground));
+    border-color: transparent;
+  }
+  .btn-primary:hover { filter: brightness(1.08); box-shadow: var(--shadow-glow-grass); }
+  .btn-honey {
+    background: var(--gradient-honey);
+    color: hsl(var(--accent-foreground));
+    border-color: transparent;
+  }
+  .btn-honey:hover { filter: brightness(1.08); box-shadow: var(--shadow-glow-honey); }
+  .btn-danger {
+    background: var(--gradient-danger);
+    color: white;
+    border-color: transparent;
+  }
+  .btn-warden {
+    background: var(--gradient-warden);
+    color: white;
+    border-color: transparent;
+  }
+  .btn-ghost { @apply bg-transparent border-transparent hover:bg-secondary/60; }
+  .btn-icon { @apply p-2.5 rounded-xl; }
+
+  /* Modern input */
+  .input {
+    @apply w-full px-3.5 py-2.5 rounded-xl bg-input border border-border/60 text-foreground text-sm;
+    @apply outline-none transition-all;
+    @apply focus:border-primary/60 focus:ring-2 focus:ring-primary/30;
+  }
+
+  /* Stage chips */
+  .stage-chip {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold;
+  }
+
+  /* Pixel hearts container — keep crisp */
+  .pixel-crisp { image-rendering: pixelated; }
+
+  /* Subtle scanline for the public scoreboard */
+  .scanlines {
+    background-image: repeating-linear-gradient(
+      0deg,
+      hsl(0 0% 100% / 0.02) 0 1px,
+      transparent 1px 3px
+    );
+  }
 }
