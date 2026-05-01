@@ -43,6 +43,7 @@ interface Actions {
   declareWinner: (id: string) => void;
   resetGame: () => void;
   pushLog: (msg: string) => void;
+  setQuestion: (round: number, question: string) => void;
 }
 
 const initialStages = DEFAULT_STAGES.map((s) => ({ ...s }));
@@ -55,6 +56,7 @@ const initialState: GameState = {
   tiebreaker: false,
   winnerId: null,
   log: ["Game initialized."],
+  questions: {},
 };
 
 function applyDamage(g: Group, amount: number): Group {
@@ -74,6 +76,11 @@ export const useGame = create<GameState & Actions>((set, get) => ({
   ...initialState,
 
   pushLog: (msg) => set((s) => ({ log: [`R${s.round}: ${msg}`, ...s.log].slice(0, 80) })),
+
+  setQuestion: (round, question) =>
+    set((s) => ({
+      questions: { ...s.questions, [round]: question },
+    })),
 
   setupGroups: (count, names) => {
     const list: Group[] = [];

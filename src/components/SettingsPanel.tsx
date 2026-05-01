@@ -1,15 +1,18 @@
 import { useGame } from "@/game/store";
-import { StageConfig } from "@/game/types";
-import { RotateCcw, Users, Swords } from "lucide-react";
+import { StageConfig, stageForRound } from "@/game/types";
+import { RotateCcw, Users, Swords, MessageSquare } from "lucide-react";
 
 export function SettingsPanel() {
   const groups = useGame((s) => s.groups);
   const stages = useGame((s) => s.stages);
+  const totalRounds = useGame((s) => s.totalRounds);
+  const questions = useGame((s) => s.questions);
   const renameGroup = useGame((s) => s.renameGroup);
   const setupGroups = useGame((s) => s.setupGroups);
   const updateStage = useGame((s) => s.updateStage);
   const resetStages = useGame((s) => s.resetStages);
   const resetGame = useGame((s) => s.resetGame);
+  const setQuestion = useGame((s) => s.setQuestion);
 
   const setN = (n: number) => {
     if (n < 2) n = 2;
@@ -124,6 +127,55 @@ export function SettingsPanel() {
         <p className="text-xs text-muted-foreground mt-3">
           Tip: stages should cover consecutive rounds. Total rounds is derived from the highest end value.
         </p>
+      </div>
+
+      {/* Round Questions */}
+      <div className="glass rounded-2xl p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <MessageSquare className="h-4 w-4 text-bee-honey" />
+            <h3 className="font-display text-sm">Round Questions</h3>
+          </div>
+          <span className="text-xs text-muted-foreground">
+            {Object.keys(questions).length} / {totalRounds} set
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[400px] overflow-y-auto pr-2">
+          {Array.from({ length: totalRounds }, (_, i) => i + 1).map((roundNum) => {
+            const roundStage = stageForRound(roundNum, stages);
+            return (
+              <div
+                key={roundNum}
+                className="p-3 rounded-xl border border-border/40"
+                style={{
+                  background: `hsl(var(--${roundStage.color}) / 0.05)`,
+                }}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <span
+                    className="text-xs font-semibold px-2 py-0.5 rounded"
+                    style={{
+                      background: `hsl(var(--${roundStage.color}) / 0.2)`,
+                      color: `hsl(var(--${roundStage.color}))`,
+                    }}
+                  >
+                    R{roundNum}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {roundStage.emoji} {roundStage.label}
+                  </span>
+                </div>
+                <textarea
+                  className="input w-full text-sm min-h-[60px] resize-none"
+                  value={questions[roundNum] || ""}
+                  onChange={(e) => setQuestion(roundNum, e.target.value)}
+                  placeholder={`Question for round ${roundNum}...`}
+                />
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       <div className="flex justify-end">

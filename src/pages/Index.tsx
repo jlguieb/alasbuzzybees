@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useGame } from "@/game/store";
 import { GroupCard } from "@/components/GroupCard";
 import { RoundTimer } from "@/components/RoundTimer";
+import { QuestionPanel } from "@/components/QuestionPanel";
 import { ItemCaster } from "@/components/ItemCaster";
 import { SettingsPanel } from "@/components/SettingsPanel";
 import { CardRedistribution } from "@/components/CardRedistribution";
@@ -117,6 +118,8 @@ const Index = () => {
         )}
 
         <RoundTimer />
+
+        <QuestionPanel />
 
         {/* Round 31 modal */}
         {showDeepDark && (

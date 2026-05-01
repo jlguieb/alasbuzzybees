@@ -42,6 +42,7 @@ export interface GameState {
   tiebreaker: boolean;
   winnerId: string | null;
   log: string[];
+  questions: Record<number, string>; // questions keyed by round number
 }
 
 export const MAX_HP = 10;
